@@ -1,6 +1,6 @@
 # From Zero
 
-Suas finanças, from zero. App Android (Expo + React Native) de finanças pessoais com lançamento manual, categorias automáticas e, nas próximas etapas, um assistente de IA e agentes de alerta.
+Suas finanças, from zero. App Android (Expo SDK 57 + React Native) de finanças pessoais com lançamento manual, categorias automáticas e, nas próximas etapas, um assistente de IA e agentes de alerta.
 
 ## Testar no celular (Expo Go)
 
