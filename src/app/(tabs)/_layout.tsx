@@ -32,6 +32,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="assistente"
+        options={{
+          title: 'Zero',
+          headerShown: false,
+          tabBarHideOnKeyboard: true,
+          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles" color={color as string} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="conta"
         options={{
           title: 'Conta',

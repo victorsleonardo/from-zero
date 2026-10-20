@@ -24,6 +24,16 @@ O arquivo `.env` já aponta para o projeto **From Zero** no Supabase. A chave de
 - Quando você corrige uma categoria, o app aprende ("comerciante X vai para Y") e oferece aplicar a correção nos lançamentos parecidos.
 - Início com saldo do mês, entradas, gastos e gastos por categoria; lista por mês com filtro.
 
+## Assistente Zero (etapa 2)
+
+- Aba **Zero**: chat com IA (Claude Haiku 5.5) que consulta seus lançamentos para responder.
+- A resposta aparece aos poucos; o histórico fica salvo e dá para apagar.
+- Roda na função `supabase/functions/chat`, no servidor do Supabase. A chave da Anthropic fica no segredo
+  `ANTHROPIC_API_KEY` do projeto (Edge Functions → Secrets), nunca dentro do app.
+- Limite de 50 perguntas por dia por usuário.
+
+Para publicar uma nova versão da função: `npx supabase functions deploy chat`.
+
 ## Comandos
 
 | Comando | O que faz |
