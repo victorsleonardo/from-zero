@@ -20,9 +20,14 @@ export function TransactionRow({ transaction: t, category }: { transaction: Tran
         <AppText numberOfLines={1}>{t.description}</AppText>
         <AppText variant="caption" muted>
           {formatDate(t.occurred_on)} · {category?.name ?? 'Sem categoria'}
+          {t.series_type === 'fixo' ? ' · fixo' : ''}
+          {t.hidden ? ' · fora dos totais' : ''}
         </AppText>
       </View>
-      <AppText variant="label" color={income ? p.success : p.text} style={{ fontVariant: ['tabular-nums'] }}>
+      <AppText
+        variant="label"
+        color={t.hidden ? p.textSecondary : income ? p.success : p.text}
+        style={{ fontVariant: ['tabular-nums'], textDecorationLine: t.hidden ? 'line-through' : 'none' }}>
         {income ? '+' : '−'}
         {formatBRL(t.amount)}
       </AppText>

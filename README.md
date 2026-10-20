@@ -47,12 +47,24 @@ Rodam no próprio banco, mesmo com o app fechado, e criam avisos na aba **Avisos
 
 Cada aviso aparece uma vez só. Os agentes são ligados/desligados em **Avisos → Configurar agentes**.
 
+## Painel completo (etapa 4)
+
+- **Início**: gráfico de entradas x gastos dos últimos 6 meses (toque num mês para ver os valores) e
+  cartão de cobranças que se repetem.
+- **Repetir** (ao criar um lançamento): *Todo mês* cria um gasto fixo pelos próximos meses; *Parcelado*
+  divide o valor total em parcelas mensais "(1/N)". Ao apagar, dá para tirar só aquele mês ou ele e os próximos.
+- **Cobranças que se repetem**: total por mês, calendário do mês com os dias das cobranças e a lista
+  (gastos fixos, parcelas restantes e o que o app detecta sozinho: mesmo comerciante, valor parecido, em 2 meses ou mais).
+- **Ignorar nos totais**: o lançamento continua na lista, riscado, mas sai do saldo, dos gráficos,
+  dos agentes e das respostas do Zero (útil para transferência entre contas, reembolso etc.).
+- **Lançamentos**: busca pela descrição e filtro por categoria, com total do que foi filtrado.
+
 ## Comandos
 
 | Comando | O que faz |
 |---|---|
 | `npx expo start` | Servidor de desenvolvimento (abre no Expo Go) |
-| `npm test` | Testes da lógica (categorização, datas, valores, resumo) |
+| `npm test` | Testes da lógica (categorização, datas, valores, resumo, recorrências) |
 | `npx expo lint` | Lint |
 | `npm run typecheck` | Checagem de tipos |
 

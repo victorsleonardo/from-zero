@@ -105,6 +105,7 @@ async function runTool(
     .select('kind, description, merchant_key, amount, occurred_on, category_id')
     .gte('occurred_on', input.inicio as string)
     .lte('occurred_on', input.fim as string)
+    .eq('hidden', false)
     .order('occurred_on', { ascending: false })
     .limit(5000);
   if (error) return { content: 'Não foi possível ler os lançamentos agora.', isError: true };

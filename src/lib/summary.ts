@@ -15,6 +15,7 @@ export function summarize(transactions: Transaction[], categories: Category[]): 
   const totals = new Map<string, number>();
 
   for (const t of transactions) {
+    if (t.hidden) continue;
     if (t.kind === 'receita') {
       income += t.amount;
     } else {

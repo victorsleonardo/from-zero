@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Switch, View } from 'react-native';
 
 import { AppText, Button, Chip, Segmented, TextField } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
@@ -11,15 +11,20 @@ import {
   applyCategoryToSimilar,
   countSimilar,
   createTransaction,
+  deleteSeriesFrom,
   deleteTransaction,
   getCategories,
   getRules,
   saveRule,
   updateTransaction,
 } from '@/lib/data';
-import { addDays, amountToInput, formatDate, parseAmount, parseDate, today } from '@/lib/format';
-import type { Category, CategoryRule, Transaction, TransactionKind } from '@/lib/types';
+import { addDays, amountToInput, formatBRL, formatDate, parseAmount, parseDate, today } from '@/lib/format';
+import type { Category, CategoryRule, SeriesType, Transaction, TransactionKind } from '@/lib/types';
 import { useUnreadAlerts } from '@/lib/unread-alerts';
+
+type RepeatChoice = 'nao' | SeriesType;
+
+const REPEAT_DEFAULT: Record<SeriesType, string> = { fixo: '12', parcelado: '3' };
 
 function confirm(title: string, message: string, okText: string): Promise<boolean> {
   return new Promise((resolve) =>
@@ -44,6 +49,9 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
   const [notes, setNotes] = useState(initial?.notes ?? '');
   /** Categoria escolhida à mão; null = usar a sugestão automática. */
   const [pickedCategory, setPickedCategory] = useState<string | null>(initial?.category_id ?? null);
+  const [hidden, setHidden] = useState(initial?.hidden ?? false);
+  const [repeat, setRepeat] = useState<RepeatChoice>('nao');
+  const [repeatCount, setRepeatCount] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +76,10 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
     if (!description.trim()) return setError('Descreva o lançamento.');
     if (!Number.isFinite(value) || value <= 0) return setError('Informe um valor maior que zero.');
     if (!occurredOn) return setError('Data inválida. Use o formato DD/MM/AAAA.');
+    const count = Number(repeatCount);
+    if (repeat !== 'nao' && (!Number.isInteger(count) || count < 2 || count > 60)) {
+      return setError(repeat === 'fixo' ? 'Escolha de 2 a 60 meses.' : 'Escolha de 2 a 60 parcelas.');
+    }
 
     const input = {
       kind,
@@ -76,6 +88,7 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
       occurred_on: occurredOn,
       category_id: categoryId,
       notes: notes.trim() || null,
+      hidden,
     };
     const key = merchantKey(input.description);
     // Aprende a regra quando a pessoa escolhe a categoria (ou corrige a de um lançamento existente).
@@ -84,7 +97,7 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
     setSaving(true);
     try {
       if (initial) await updateTransaction(initial.id, input);
-      else await createTransaction(input);
+      else await createTransaction(input, repeat === 'nao' ? undefined : { type: repeat, count });
 
       if (learned && session) {
         await saveRule(session.user.id, key, categoryId);
@@ -111,22 +124,44 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
 
   function remove() {
     if (!initial) return;
+    const run = (action: () => Promise<void>) => async () => {
+      try {
+        await action();
+        router.back();
+      } catch {
+        setError('Não foi possível excluir.');
+      }
+    };
+    if (initial.series_id) {
+      const what = initial.series_type === 'parcelado' ? 'as próximas parcelas' : 'os próximos meses';
+      Alert.alert('Excluir lançamento?', `Este lançamento faz parte de uma série. Quer apagar também ${what}?`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Só este', onPress: run(() => deleteTransaction(initial.id)) },
+        { text: 'Este e os próximos', style: 'destructive', onPress: run(() => deleteSeriesFrom(initial)) },
+      ]);
+      return;
+    }
     Alert.alert('Excluir lançamento?', `"${initial.description}" será apagado.`, [
       { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteTransaction(initial.id);
-            router.back();
-          } catch {
-            setError('Não foi possível excluir.');
-          }
-        },
-      },
+      { text: 'Excluir', style: 'destructive', onPress: run(() => deleteTransaction(initial.id)) },
     ]);
   }
+
+  function chooseRepeat(choice: RepeatChoice) {
+    setRepeat(choice);
+    setRepeatCount(choice === 'nao' ? '' : REPEAT_DEFAULT[choice]);
+  }
+
+  const amountValue = parseAmount(amount);
+  const countValue = Number(repeatCount);
+  const repeatHint =
+    repeat === 'nao' || !Number.isInteger(countValue) || countValue < 2
+      ? undefined
+      : repeat === 'fixo'
+        ? `O mesmo valor vai ser lançado todo mês, por ${countValue} meses, a partir da data acima.`
+        : Number.isFinite(amountValue) && amountValue > 0
+          ? `${countValue} parcelas de cerca de ${formatBRL(amountValue / countValue)}, uma por mês.`
+          : 'Informe o valor total da compra; ele é dividido entre as parcelas.';
 
   const todayIso = today();
   const sourceHint =
@@ -147,7 +182,11 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
             { value: 'receita', label: 'Entrada' },
           ]}
           value={kind}
-          onChange={setKind}
+          onChange={(k) => {
+            setKind(k);
+            // Entrada não tem parcelamento.
+            if (k === 'receita' && repeat === 'parcelado') chooseRepeat('nao');
+          }}
         />
 
         <TextField
@@ -160,7 +199,7 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
         />
 
         <TextField
-          label="Valor (R$)"
+          label={repeat === 'parcelado' ? 'Valor total da compra (R$)' : 'Valor (R$)'}
           value={amount}
           onChangeText={setAmount}
           placeholder="0,00"
@@ -189,7 +228,42 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
           {sourceHint && <AppText variant="caption" muted>{sourceHint}</AppText>}
         </View>
 
+        {!initial && (
+          <View style={{ gap: Spacing.sm }}>
+            <AppText variant="label">Repetir</AppText>
+            <Segmented<RepeatChoice>
+              options={[
+                { value: 'nao', label: 'Não' },
+                { value: 'fixo', label: 'Todo mês' },
+                ...(kind === 'despesa' ? [{ value: 'parcelado' as const, label: 'Parcelado' }] : []),
+              ]}
+              value={repeat}
+              onChange={chooseRepeat}
+            />
+            {repeat !== 'nao' && (
+              <TextField
+                label={repeat === 'fixo' ? 'Por quantos meses?' : 'Quantas parcelas?'}
+                value={repeatCount}
+                onChangeText={setRepeatCount}
+                keyboardType="number-pad"
+                maxLength={2}
+                hint={repeatHint}
+              />
+            )}
+          </View>
+        )}
+
         <TextField label="Observação" value={notes} onChangeText={setNotes} placeholder="Opcional" maxLength={500} />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <AppText variant="label">Ignorar nos totais</AppText>
+            <AppText variant="caption" muted>
+              Para transferências entre contas suas, que não são gasto nem renda.
+            </AppText>
+          </View>
+          <Switch value={hidden} onValueChange={setHidden} trackColor={{ true: p.primary, false: p.border }} />
+        </View>
 
         {error && <AppText color={p.danger}>{error}</AppText>}
 

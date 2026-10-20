@@ -33,6 +33,7 @@ function RootNavigator() {
         <Stack.Screen name="lancamento/novo" options={{ title: 'Novo lançamento', presentation: 'modal' }} />
         <Stack.Screen name="lancamento/[id]" options={{ title: 'Editar lançamento' }} />
         <Stack.Screen name="agentes" options={{ title: 'Agentes' }} />
+        <Stack.Screen name="assinaturas" options={{ title: 'Cobranças que se repetem' }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="login" options={{ headerShown: false }} />

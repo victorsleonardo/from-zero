@@ -10,6 +10,9 @@ export const Colors = {
     onPrimary: '#FFFFFF',
     success: '#15803D',
     danger: '#C2410C',
+    // Séries de gráfico (paleta categórica validada para daltonismo e contraste)
+    chartIncome: '#2A78D6',
+    chartExpense: '#EB6834',
   },
   dark: {
     text: '#ECEEF2',
@@ -22,6 +25,8 @@ export const Colors = {
     onPrimary: '#0B0D11',
     success: '#4ADE80',
     danger: '#FB923C',
+    chartIncome: '#3987E5',
+    chartExpense: '#D95926',
   },
 } as const;
 

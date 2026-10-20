@@ -90,6 +90,9 @@ describe('summarize', () => {
     occurred_on: '2026-10-05',
     category_id: 'outros',
     notes: null,
+    hidden: false,
+    series_id: null,
+    series_type: null,
     ...partial,
   });
 

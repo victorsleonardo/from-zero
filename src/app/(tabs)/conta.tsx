@@ -23,7 +23,7 @@ export default function AccountScreen() {
       </Card>
       <Card style={{ gap: Spacing.xs }}>
         <AppText variant="heading">Em breve</AppText>
-        <AppText muted>Notificações no celular, painel completo e metas por categoria.</AppText>
+        <AppText muted>Metas por categoria e notificações no celular.</AppText>
       </Card>
       <Button title="Sair" variant="danger" icon="log-out-outline" onPress={signOut} />
     </ScrollView>
