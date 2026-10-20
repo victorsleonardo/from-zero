@@ -11,6 +11,7 @@ import { useMonthData } from '@/hooks/use-month-data';
 import { usePalette } from '@/hooks/use-palette';
 import { currentMonth, formatBRL } from '@/lib/format';
 import { summarize } from '@/lib/summary';
+import { useUnreadAlerts } from '@/lib/unread-alerts';
 
 export default function HomeScreen() {
   const p = usePalette();
@@ -18,6 +19,7 @@ export default function HomeScreen() {
   const { transactions, categories, loading, error, reload } = useMonthData(month);
   const summary = summarize(transactions, categories);
   const categoryById = new Map(categories.map((c) => [c.id, c]));
+  const { count: unreadAlerts } = useUnreadAlerts();
 
   return (
     <View style={{ flex: 1 }}>
@@ -25,6 +27,17 @@ export default function HomeScreen() {
         contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 96 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} />}>
         <MonthSwitcher month={month} onChange={setMonth} />
+
+        {unreadAlerts > 0 && (
+          <Pressable onPress={() => router.push('/avisos')}>
+            <Card style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderColor: p.primary }}>
+              <AppText variant="label" style={{ flex: 1 }}>
+                {unreadAlerts === 1 ? 'Você tem 1 aviso novo dos seus agentes' : `Você tem ${unreadAlerts} avisos novos dos seus agentes`}
+              </AppText>
+              <AppText variant="label" color={p.primary}>Ver</AppText>
+            </Card>
+          </Pressable>
+        )}
 
         <Card style={{ gap: Spacing.md }}>
           <AppText muted>Saldo do mês</AppText>

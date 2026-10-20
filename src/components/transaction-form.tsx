@@ -19,6 +19,7 @@ import {
 } from '@/lib/data';
 import { addDays, amountToInput, formatDate, parseAmount, parseDate, today } from '@/lib/format';
 import type { Category, CategoryRule, Transaction, TransactionKind } from '@/lib/types';
+import { useUnreadAlerts } from '@/lib/unread-alerts';
 
 function confirm(title: string, message: string, okText: string): Promise<boolean> {
   return new Promise((resolve) =>
@@ -32,6 +33,7 @@ function confirm(title: string, message: string, okText: string): Promise<boolea
 export function TransactionForm({ initial }: { initial?: Transaction }) {
   const p = usePalette();
   const { session } = useAuth();
+  const { refresh: refreshAlerts } = useUnreadAlerts();
   const [categories, setCategories] = useState<Category[]>([]);
   const [rules, setRules] = useState<CategoryRule[]>([]);
 
@@ -97,6 +99,8 @@ export function TransactionForm({ initial }: { initial?: Transaction }) {
           if (apply) await applyCategoryToSimilar(key, kind, categoryId);
         }
       }
+      // Um gasto novo pode ter disparado um agente.
+      refreshAlerts();
       router.back();
     } catch {
       setError('Não foi possível salvar. Verifique a internet e tente de novo.');

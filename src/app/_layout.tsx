@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePalette } from '@/hooks/use-palette';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { UnreadAlertsProvider } from '@/lib/unread-alerts';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,6 +32,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="lancamento/novo" options={{ title: 'Novo lançamento', presentation: 'modal' }} />
         <Stack.Screen name="lancamento/[id]" options={{ title: 'Editar lançamento' }} />
+        <Stack.Screen name="agentes" options={{ title: 'Agentes' }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -44,8 +46,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <StatusBar style="auto" />
-        <RootNavigator />
+        <UnreadAlertsProvider>
+          <StatusBar style="auto" />
+          <RootNavigator />
+        </UnreadAlertsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -2,9 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 
 import { usePalette } from '@/hooks/use-palette';
+import { useUnreadAlerts } from '@/lib/unread-alerts';
 
 export default function TabsLayout() {
   const p = usePalette();
+  const { count: unread } = useUnreadAlerts();
   return (
     <Tabs
       screenOptions={{
@@ -38,6 +40,14 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarHideOnKeyboard: true,
           tabBarIcon: ({ color, size }) => <Ionicons name="sparkles" color={color as string} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="avisos"
+        options={{
+          title: 'Avisos',
+          tabBarBadge: unread > 0 ? unread : undefined,
+          tabBarIcon: ({ color, size }) => <Ionicons name="notifications" color={color as string} size={size} />,
         }}
       />
       <Tabs.Screen

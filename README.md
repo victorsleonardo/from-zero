@@ -34,6 +34,19 @@ O arquivo `.env` já aponta para o projeto **From Zero** no Supabase. A chave de
 
 Para publicar uma nova versão da função: `npx supabase functions deploy chat`.
 
+## Agentes de alerta (etapa 3)
+
+Rodam no próprio banco, mesmo com o app fechado, e criam avisos na aba **Avisos** (com contador na aba e cartão no Início):
+
+| Agente | Quando avisa | Como roda |
+|---|---|---|
+| Limite de gasto do dia | O total gasto hoje passou do valor que você definiu | Na hora do lançamento (trigger) |
+| Gasto fora do normal | Gasto ≥ R$ 50 com o dobro da média da categoria nos últimos 90 dias (com pelo menos 3 gastos de base) | Na hora do lançamento |
+| Cobrança que se repete | Mesmo comerciante, valor parecido (±15%), em mês anterior | Na hora do lançamento |
+| Resumo semanal | Toda segunda às 09:00 (Brasília): semana atual x anterior e categorias principais | pg_cron |
+
+Cada aviso aparece uma vez só. Os agentes são ligados/desligados em **Avisos → Configurar agentes**.
+
 ## Comandos
 
 | Comando | O que faz |
